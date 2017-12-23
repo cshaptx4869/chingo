@@ -9,16 +9,19 @@
 
     /* 压缩为zip文件 */
     $zip=new ZipArchive;
-    if($zip->open('test.zip',ZipArchive::OVERWRITE)===TRUE){
-        $zip->addFile('../demo/image.txt','new_name.txt');//假设要加入的文件是image.txt 注意压缩的目标文件必须存在哦 若存在第二个参数 则会把原文件名重命名
+    if($zip->open('test.zip',ZipArchive::OVERWRITE)===TRUE){    //ZipArchive::OVERWRITE表示如果zip文件存在，就覆盖掉原来的zip文件。
+        $zip->addFile('../demo/image.txt','1.txt');        //假设要加入的文件是image.txt 注意压缩的目标文件必须存在哦 若存在第二个参数 则会把原文件名重命名
+        $zip->addFile('../demo/images.txt','2.txt');       //压缩第二个文件
         $zip->close();
     }
 
     /* 文件追加内容添加到zip文件 */
     $zip=new ZipArchive;
-    $res=$zip->open('test02.zip',ZipArchive::CREATE); //CREATE 不存在则创建
+    $res=$zip->open('test.zip',ZipArchive::CREATE); //CREATE 不存在zip则创建  使用ZIPARCHIVE::CREATE，系统就会往原来的zip文件里添加内容。
     if($res===TRUE){
-        $zip->addFromString('image.txt','file content goes here'); //test02.zip 文件中 向image.txt文件追加内容 若 image.txt文件不存在,则自动创建
+        $zip->addFile('image.txt');
+        $zip->addFile('images.txt');
+        $zip->addFromString('image.txt','file content goes here'); //test.zip 文件中 向image.txt文件追加内容 若 image.txt文件不存在,则自动创建
         $zip->close();
         echo 'ok';
     }else{
@@ -45,6 +48,7 @@
         addFileToZip('dabao', $zip); //调用方法，对要打包的根目录进行操作，并将ZipArchive的对象传递给方法
         $zip->close(); //关闭处理的zip文件
     }
+
 
     /*                       TIPS      ZipArchive 类                                    */
 
