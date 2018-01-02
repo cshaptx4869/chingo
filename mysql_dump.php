@@ -23,14 +23,26 @@
         unlink($filename.'.sql');
     }
     //超过5天则删除备份文件
-    if (filectime($dirname)<time()-5*24*3600){
-        $hander = opendir($dirname);
-        while($file = readdir($hander)){
-            if ($file != '.' && $file != '..' ){
-                unlink($dirname.'/'.$file);
+    $dir = dirname(__FILE__);
+    $handler = opendir($dir);
+    while ($files = readdir($handler)){
+        if ($files != '.' && $files != '..' ){
+            $is_dir = $dir.'/'.$files;
+            //是目录
+            if(is_dir($is_dir)){
+                //超过5天
+                if (filectime($is_dir)<time()-5*24*3600){
+                    $hander = opendir($is_dir);
+                    while($file = readdir($hander)){
+                        if ($file != '.' && $file != '..' ){
+                            unlink($is_dir.'/'.$file);
+                        }
+                    }
+                    closedir($hander);
+                    rmdir($is_dir);
+                }
             }
         }
-        closedir($hander);
-        rmdir($dirname);
     }
+    closedir($handler);
 
