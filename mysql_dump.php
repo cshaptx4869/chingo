@@ -1,5 +1,5 @@
 <?php
-    /*定时备份数据库文件*/
+    /*定时备份数据库文件 E:/mysql_dump/ */
     //设置时区
     date_default_timezone_set('PRC');
     //创建目录
