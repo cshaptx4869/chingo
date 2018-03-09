@@ -8,7 +8,7 @@ class MySQL{
     //声明成员属性
     public $link;
     //用于设置获取结果集的数组格式
-    public $fetchStyle;
+    public $fetchStyle = MYSQLI_ASSOC;
     private static $obj = null;
     
     
