@@ -1,178 +1,183 @@
 <?php
-    final class Page
+final class Page
+{
+    // 总记录数
+    private $totalRows;
+    // 每页记录数
+    private $pageSize;
+    // 总页数
+    private $totalPage;
+    // 页码关键字
+    private $queryPage = "page";
+    // 其他参数
+    private $otherParma = '';
+    // 分页显示页码个数
+    private $len;
+    // 当前url路径
+    private $path;
+    // 当前页
+    private $curPage;
+    // 上一页名字
+    public $lastPageStr = '上一页';
+    // 下一页
+    public $nextPageStr = '下一页';
+    // 首页
+    public $startStr = '首页';
+    // 尾页
+    public $endStr = '尾页';
+    // 是否需要首页
+    public $startNeed = true;
+    // 是否需要尾页
+    public $endNeed = true;
+    // 是否显示数字
+    public $numShow = true;
+    // 是否使用默认样式 ul class=pagination  li class=display,acitve
+    public $defaultCss = true;
+    function __construct($totalRows, $pageSize=10, $len=7)
     {
-        // 总记录数
-        private $totalRows;
-        // 每页记录数
-        private $pageSize;
-        // 总页数
-        private $totalPage;
-        // 页码关键字
-        private $queryPage = "page";
-        // 其他参数
-        private $otherParma = '';
-        // 分页显示页码个数
-        private $len;
-        // 当前url路径
-        private $path;
-        // 当前页
-        private $curPage;
-        // 上一页名字
-        public $lastPageStr = '上一页';
-        // 下一页
-        public $nextPageStr = '下一页';
-        // 首页
-        public $startStr = '首页';
-        // 尾页
-        public $endStr = '尾页';
-        // 是否需要首页
-        public $startNeed = true;
-        // 是否需要尾页
-        public $endNeed = true;
-        // 是否显示数字
-        public $numShow = true;
-        // 是否使用默认样式 ul class=pagination  li class=display,acitve
-        public $defaultCss = true;
-
-
-        function __construct($totalRows, $pageSize=10, $len=7)
-        {
-            if (!is_numeric($totalRows))die('totalRows param type error!');
-            if (!is_numeric($pageSize))die('pageSize param type error!');
-            if (!is_numeric($len))die('len param type error!');
-            $this->totalRows = $totalRows;
-            $this->pageSize = $pageSize;
-            $this->len = $len;
-            $this->init();
+        if (!is_numeric($totalRows))die('totalRows param type error!');
+        if (!is_numeric($pageSize))die('pageSize param type error!');
+        if (!is_numeric($len))die('len param type error!');
+        $this->totalRows = $totalRows;
+        $this->pageSize = $pageSize;
+        $this->len = $len;
+        $this->init();
+    }
+    // 获取当前页
+    public function __get($name)
+    {
+        if ($name == 'curPage'){
+            return $this->curPage;
         }
-
-        // 初始化
-        private function init()
-        {
-            $this->getTotalPage(); // 获取总页数
-            $this->getPath(); // 获取url
-            $this->getCurPage(); // 获取当前页
-            if ($this->defaultCss)
-                $this->loadCss();   // 加载css样式
+    }
+    // 初始化
+    private function init()
+    {
+        $this->getTotalPage(); // 获取总页数
+        $this->getPath(); // 获取url
+        $this->getCurPage(); // 获取当前页
+        if ($this->defaultCss)
+            $this->loadCss();   // 加载css样式
+    }
+    // 设置页码关键字
+    public function setKey($key)
+    {
+        $this->queryPage = $key;
+    }
+    // 设置其他参数
+    public function setOtherKey(array $param)
+    {
+        $paramStr = '';
+        foreach ($param as $k => $v){
+            $paramStr .= '&'.$k.'='.$v;
         }
-
-        // 设置页码关键字
-        public function setKey($key)
+        $this->otherParma = $paramStr;
+    }
+    // 获取总页数
+    private function getTotalPage()
+    {
+        $this->totalPage = ceil($this->totalRows/$this->pageSize);
+    }
+    // 获取链接地址
+    private function getPath()
+    {
+        $this->path = $_SERVER['SCRIPT_NAME'];
+    }
+    // 获取并验证当前页码
+    private function getCurPage()
+    {
+        $curPage = isset($_GET[$this->queryPage])?$_GET[$this->queryPage]:1;
+        if ($curPage > $this->totalPage)
         {
-            $this->queryPage = $key;
+            $curPage = $this->totalPage;
+        } elseif ($curPage < 1){
+            $curPage = 1;
         }
-
-        // 设置其他参数
-        public function setOtherKey(array $param)
-        {
-            $paramStr = '';
-            foreach ($param as $k => $v){
-                $paramStr .= '&'.$k.'='.$v;
-            }
-            $this->otherParma = $paramStr;
+        $this->curPage = $curPage;
+    }
+    // 获取偏移量
+    private function offset()
+    {
+        $offset = ($this->curPage - 1) * $this->pageSize;
+        return $offset;
+    }
+    // 输出limit字符串
+    public function limit()
+    {
+        return ' '.$this->offset().','.$this->pageSize.' ';
+    }
+    // 上一页
+    private function lastPage()
+    {
+        if ($this->startNeed)
+            $list = '<li><a href="'.$this->path.'?'.$this->queryPage.'=1'.$this->otherParma.'" >'.$this->startStr.'</a></li>';
+        else
+            $list = '';
+        if ($this->curPage == 1){
+            $list .= '<li class="disabled"><a href="#">'.$this->lastPageStr.'</a></li>';
+        }else{
+            $list .= '<li><a href="'.$this->path.'?'.$this->queryPage.'='.($this->curPage-1).$this->otherParma.'" >'.$this->lastPageStr.'</a></li>';
         }
-
-        // 获取总页数
-        private function getTotalPage()
-        {
-            $this->totalPage = ceil($this->totalRows/$this->pageSize);
-        }
-
-        // 获取链接地址
-        private function getPath()
-        {
-            $this->path = $_SERVER['SCRIPT_NAME'];
-        }
-
-        // 获取并验证当前页码
-        private function getCurPage()
-        {
-            $curPage = isset($_GET[$this->queryPage])?$_GET[$this->queryPage]:1;
-            if ($curPage > $this->totalPage)
-            {
-                $curPage = $this->totalPage;
-            } elseif ($curPage < 1){
-                $curPage = 1;
-            }
-            $this->curPage = $curPage;
-        }
-
-        // 上一页
-        private function lastPage()
-        {
-            if ($this->startNeed)
-                $list = '<li><a href="'.$this->path.'?'.$this->queryPage.'=1'.$this->otherParma.'" >'.$this->startStr.'</a></li>';
-            else
-                $list = '';
-            if ($this->curPage == 1){
-                $list .= '<li class="disabled"><a href="#">'.$this->lastPageStr.'</a></li>';
-            }else{
-                $list .= '<li><a href="'.$this->path.'?'.$this->queryPage.'='.($this->curPage-1).$this->otherParma.'" >'.$this->lastPageStr.'</a></li>';
-            }
-            if ($this->numShow){
-                if (($this->len % 2 == 0))
-                    $num = floor(($this->len-1)/2);
-                else
-                    $num = ($this->len-1)/2;
-                for ($i=$num; $i>0; $i--){
-                    $lastPage = $this->curPage-$i;
-                    if ($lastPage < 1) continue;
-                    $list .= '<li><a href="'.$this->path.'?'.$this->queryPage.'='.$lastPage.$this->otherParma.'" >'.$lastPage.'</a></li>';
-                }
-            }
-            return $list;
-        }
-
-        // 当前页
-        private function curPage()
-        {
-            if ($this->numShow)
-                $list = '<li class="active"><a href="'.$this->path.'?'.$this->queryPage.'='.$this->curPage.$this->otherParma.'">'.$this->curPage.'</a></li>';
-            else
-                $list = '';
-            return $list;
-        }
-
-        // 下一页
-        private function nextPage()
-        {
+        if ($this->numShow){
             if (($this->len % 2 == 0))
-                $num = ceil(($this->len-1)/2);
+                $num = floor(($this->len-1)/2);
             else
                 $num = ($this->len-1)/2;
+            for ($i=$num; $i>0; $i--){
+                $lastPage = $this->curPage-$i;
+                if ($lastPage < 1) continue;
+                $list .= '<li><a href="'.$this->path.'?'.$this->queryPage.'='.$lastPage.$this->otherParma.'" >'.$lastPage.'</a></li>';
+            }
+        }
+        return $list;
+    }
+    // 当前页
+    private function curPage()
+    {
+        if ($this->numShow)
+            $list = '<li class="active"><a href="'.$this->path.'?'.$this->queryPage.'='.$this->curPage.$this->otherParma.'">'.$this->curPage.'</a></li>';
+        else
             $list = '';
-            if ($this->numShow) {
-                for ($i = 1; $i <= $num; $i++) {
-                    $nextPage = $this->curPage + $i;
-                    if ($nextPage > $this->totalPage) continue;
-                    $list .= '<li><a href="' . $this->path . '?' . $this->queryPage . '=' . $nextPage . $this->otherParma . '" >' . $nextPage . '</a></li>';
-                }
+        return $list;
+    }
+    // 下一页
+    private function nextPage()
+    {
+        if (($this->len % 2 == 0))
+            $num = ceil(($this->len-1)/2);
+        else
+            $num = ($this->len-1)/2;
+        $list = '';
+        if ($this->numShow) {
+            for ($i = 1; $i <= $num; $i++) {
+                $nextPage = $this->curPage + $i;
+                if ($nextPage > $this->totalPage) continue;
+                $list .= '<li><a href="' . $this->path . '?' . $this->queryPage . '=' . $nextPage . $this->otherParma . '" >' . $nextPage . '</a></li>';
             }
-            if ($this->curPage >= $this->totalPage) {
-                $list .= '<li class="disabled"><a href="#">'.$this->nextPageStr.'</a></li>';
-            } else {
-                $list .= '<li><a href="'.$this->path.'?'.$this->queryPage.'='.($this->curPage+1).$this->otherParma.'" >'.$this->nextPageStr.'</a></li>';
-            }
-            if ($this->endNeed)
-                $list .= '<li><a href="'.$this->path.'?'.$this->queryPage.'='.$this->totalPage.$this->otherParma.'" >'.$this->endStr.'</a></li>';
-            return $list;
         }
-
-        // 生成链接
-        public function links()
-        {
-            $html = '<ul class="pagination">';
-            $html .= $this->lastPage();
-            $html .= $this->curPage();
-            $html .= $this->nextPage();
-            $html .= '</ul>';
-            return $html;
+        if ($this->curPage >= $this->totalPage) {
+            $list .= '<li class="disabled"><a href="#">'.$this->nextPageStr.'</a></li>';
+        } else {
+            $list .= '<li><a href="'.$this->path.'?'.$this->queryPage.'='.($this->curPage+1).$this->otherParma.'" >'.$this->nextPageStr.'</a></li>';
         }
-
-        // 样式加载
-        private function loadCss()
-        {
-            echo '<style>
+        if ($this->endNeed)
+            $list .= '<li><a href="'.$this->path.'?'.$this->queryPage.'='.$this->totalPage.$this->otherParma.'" >'.$this->endStr.'</a></li>';
+        return $list;
+    }
+    // 生成链接
+    public function links()
+    {
+        $html = '<ul class="pagination">';
+        $html .= $this->lastPage();
+        $html .= $this->curPage();
+        $html .= $this->nextPage();
+        $html .= '</ul>';
+        return $html;
+    }
+    // 样式加载
+    private function loadCss()
+    {
+        echo '<style>
                 .pagination{
                     border:solid 1px #DDDDDD;
                     border-radius: 4px;
@@ -259,10 +264,9 @@
                     cursor: not-allowed;
                 }
                 </style>';
-        }
-
-        public function __destruct()
-        {
-            echo 'object page is destoryed';
-        }
     }
+   public function __destruct()
+   {
+       echo 'object page is destoryed';
+   }
+}
